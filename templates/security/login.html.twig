@@ -1,0 +1,254 @@
+{% extends 'base.html.twig' %}
+{% block title %}Log in{% endblock %}
+{% block body %}
+<form id="loginForm" method="post" novalidate>
+    <div class="logo-container">
+        <img src="{{ asset('assets/images/logologin.png') }}" alt="Login Logo" class="login-logo">
+    </div>
+
+    {% if error %}
+        {% if error.messageKey == 'Invalid credentials.' %}
+            <div id="notification" class="alert alert-danger">
+                L'adresse e-mail ou le mot de passe est incorrect.
+            </div>
+        {% else %}
+            <div id="notification" class="alert alert-danger">
+                {{ error.messageKey|trans(error.messageData, 'security') }}
+            </div>
+        {% endif %}
+    {% endif %}
+
+    {% if app.user %}
+        <div class="mb-3">
+            You are logged in as {{ app.user.userIdentifier }}, <a href="{{ path('app_logout') }}">Logout</a>
+        </div>
+    {% endif %}
+
+    <h1 class="h3 mb-3 font-weight-normal">Connectez-vous</h1>
+    <label for="inputEmail">E-mail</label>
+    <input type="email" value="{{ last_username }}" name="email" id="inputEmail" class="form-control" autocomplete="email" required autofocus>
+    <label for="inputPassword">Mot de passe</label>
+    <input type="password" name="password" id="inputPassword" class="form-control" autocomplete="current-password" required>
+    <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+    <div class="checkbox mb-3">
+        <label>
+            <input type="checkbox" name="_remember_me"> Se souvenir de moi
+        </label>
+    </div>
+    <button class="btn btn-lg btn-primary" type="submit">Connexion</button>
+    <button type="reset" class="btn btn-secondary" id="resetBtn">Réinitialiser</button>
+    <div class="register-link">
+        Vous n'avez pas de compte ? <a href="{{ path('app_register') }}">Inscrivez-vous ici</a>
+    </div>
+</form>
+
+<style>
+    /* Global styles */
+    body {
+        font-family: 'Arial', sans-serif;
+        background-color: #f0f4f8;
+        color: #333;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+    }
+
+    /* Form container */
+    form {
+        background-color: #ffffff;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        padding: 40px;
+        width: 100%;
+        max-width: 400px;
+        position: relative;
+    }
+
+    /* Title */
+    h1 {
+        text-align: center;
+        color: #4c6ef5;
+        margin-bottom: 20px;
+        font-size: 1.8rem;
+    }
+
+    /* Input fields */
+    input[type="email"], input[type="password"] {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 15px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        font-size: 1rem;
+        transition: border-color 0.3s;
+    }
+
+    input[type="email"]:focus, input[type="password"]:focus {
+        border-color: #4c6ef5;
+        outline: none;
+    }
+
+    /* Checkbox */
+    .checkbox label {
+        font-size: 0.9rem;
+        color: #666;
+    }
+
+    /* Submit button */
+    button[type="submit"] {
+        width: 100%;
+        padding: 12px;
+        font-size: 1rem;
+        background-color: #4c6ef5;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+        margin-bottom: 15px;
+    }
+
+    button[type="submit"]:hover {
+        background-color: #3a5bb3;
+    }
+
+    /* Alert notifications */
+    .alert {
+        background-color: #f8d7da;
+        color: #721c24;
+        border-radius: 5px;
+        padding: 15px;
+        margin-bottom: 20px;
+        opacity: 1;
+    }
+
+    /* Alert with animation */
+    .alert-animated {
+        opacity: 0;
+        transition: opacity 0.5s ease-in-out;
+    }
+
+    .alert-animated.show {
+        opacity: 1;
+    }
+
+    /* Logged in message */
+    .mb-3 {
+        text-align: center;
+        font-size: 0.9rem;
+        color: #666;
+    }
+
+    /* Links */
+    a {
+        color: #4c6ef5;
+        text-decoration: none;
+    }
+
+    a:hover {
+        text-decoration: underline;
+    }
+
+    /* Register link */
+    .register-link {
+        text-align: center;
+        margin-top: 15px;
+        font-size: 0.9rem;
+        color: #666;
+    }
+
+    .logo-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .login-logo {
+        width: 150px;
+        height: 150px;
+    }
+
+    .btn-secondary {
+            width: 100%;
+            padding: 0.75rem;
+            font-size: 1rem;
+            background-color: #ccc;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var notification = document.getElementById('notification');
+    if (notification) {
+        // Pour les messages d'erreur du serveur, on ne les fait pas disparaître
+        if (!notification.textContent.includes('Invalid credentials')) {
+            notification.classList.add('alert-animated');
+            // Ajout d'un petit délai pour déclencher la transition
+            setTimeout(function() {
+                notification.classList.add('show');
+            }, 10);
+            // Masquer la notification après 5 secondes
+            setTimeout(function() {
+                notification.classList.remove('show');
+            }, 5000);
+        }
+    }
+    
+    // Validation côté client
+    var form = document.getElementById('loginForm');
+    form.addEventListener('submit', function(event) {
+        var email = document.getElementById('inputEmail').value.trim();
+        var password = document.getElementById('inputPassword').value.trim();
+        var errorMsg = '';
+        
+        // Regex pour validation email
+        var emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        if (!email) {
+            errorMsg = 'L\'adresse e-mail est obligatoire.';
+        } else if (!emailPattern.test(email)) {
+            errorMsg = 'L\'adresse e-mail n\'est pas valide.';
+        } else if (!password) {
+            errorMsg = 'Le mot de passe est obligatoire.';
+        }
+        
+        // Gestion des erreurs de validation
+        if (errorMsg !== '') {
+            event.preventDefault();
+            if (!notification) {
+                notification = document.createElement('div');
+                notification.id = 'notification';
+                notification.className = 'alert alert-danger alert-animated';
+                form.insertBefore(notification, form.firstChild);
+            }
+            notification.innerText = errorMsg;
+            notification.classList.remove('show');
+            setTimeout(function() {
+                notification.classList.add('show');
+            }, 10);
+            return false;
+        }
+
+        const resetBtn = document.getElementById('resetBtn');
+        if (resetBtn) {
+            resetBtn.addEventListener('click', function() {
+                form.reset();
+                emailFeedback.style.display = 'none';
+                confirmPasswordFeedback.style.display = 'none';
+                lengthCheck.classList.remove('valid', 'invalid');
+                upperCheck.classList.remove('valid', 'invalid');
+                numberCheck.classList.remove('valid', 'invalid');
+                specialCheck.classList.remove('valid', 'invalid');
+            });
+        }
+    });
+});
+</script>
+{% endblock %}

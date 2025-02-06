@@ -20,5 +20,12 @@ services:
             - '../src/Entity/'
             - '../src/Kernel.php'
 
+    app.custom_form_renderer:
+        class: App\Form\CustomFormRenderer
+        arguments:
+            - '@twig'
+            - '@security.firewall.map'
+            - { main: 'security/2fa_form.html.twig', admin: 'admin/security/2fa_form.html.twig' }
+
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
