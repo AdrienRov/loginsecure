@@ -34,7 +34,13 @@ Avant de démarrer l'installation du projet, assurez-vous que les éléments sui
      - **Mot de passe** : `PasswordWebSite3`
      - Cet utilisateur doit avoir tous les droits nécessaires pour créer et gérer des bases de données.
    - Vous pouvez utiliser **phpMyAdmin** ou un autre outil de gestion pour configurer votre base de données et votre utilisateur MySQL.
+```bash
+CREATE USER 'loginuser'@'localhost' IDENTIFIED BY 'PasswordWebSite3';
 
+GRANT ALL PRIVILEGES ON *.* TO 'loginuser'@'localhost' WITH GRANT OPTION;
+
+FLUSH PRIVILEGES;
+```
 ## Installation du Projet
 
 ### 1. **Clonez le Répertoire du Projet**
